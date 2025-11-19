@@ -53,7 +53,7 @@
 
 ## 🚀 Live Demo
 
-Visit the application: **[CipherNest](https://debanga-06.github.io/CipherNest/)**
+Visit the application: **[https://debanga-06.github.io/CipherNest/](CipherNest)**
 
 ---
 
