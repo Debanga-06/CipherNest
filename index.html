@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CipherNest - Secure Note-Taking with Steganography</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔐 CipherNest</h1>
+            <p>Secure note-taking with encryption and steganography</p>
+            <p><small>Supports PNG & JPG images for steganography</small></p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('encrypt')">📝 Encrypt</button>
+            <button class="tab" onclick="showTab('decrypt')">🔓 Decrypt</button>
+            <button class="tab" onclick="showTab('steganography')">🖼️ Hide in Image</button>
+            <button class="tab" onclick="showTab('extract')">🔍 Extract from Image</button>
+        </div>
+
+        <!-- Encrypt Tab -->
+        <div id="encrypt" class="tab-content active">
+            <div class="info-box">
+                <h3>📝 Encrypt Your Notes</h3>
+                <p>Create encrypted notes that can only be read with your password.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="noteTitle">Note Title:</label>
+                <input type="text" id="noteTitle" placeholder="Enter note title">
+            </div>
+
+            <div class="form-group">
+                <label for="noteContent">Note Content:</label>
+                <textarea id="noteContent" placeholder="Enter your note content here..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="encryptPassword">Password:</label>
+                <input type="password" id="encryptPassword" placeholder="Enter a strong password">
+                <div class="password-strength">
+                    <div id="passwordBar" class="password-strength-bar"></div>
+                    <div id="passwordText" class="password-strength-text">Enter a password</div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="encryptNote()">🔒 Encrypt Note</button>
+                <button class="btn btn-secondary" onclick="clearEncryptForm()">🗑️ Clear</button>
+            </div>
+
+            <div class="result-area" id="encryptedResult">
+                Your encrypted note will appear here...
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" onclick="copyToClipboard('encryptedResult')">📋 Copy</button>
+                <button class="btn btn-secondary" onclick="downloadText('encryptedResult', 'encrypted-note.txt')">💾
+                    Download</button>
+            </div>
+        </div>
+
+        <!-- Decrypt Tab -->
+        <div id="decrypt" class="tab-content">
+            <div class="info-box">
+                <h3>🔓 Decrypt Your Notes</h3>
+                <p>Paste your encrypted note and password to decrypt it.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="encryptedInput">Encrypted Note:</label>
+                <textarea id="encryptedInput" placeholder="Paste your encrypted note here..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="decryptPassword">Password:</label>
+                <input type="password" id="decryptPassword" placeholder="Enter your password">
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="decryptNote()">🔓 Decrypt Note</button>
+                <button class="btn btn-secondary" onclick="clearDecryptForm()">🗑️ Clear</button>
+            </div>
+
+            <div class="result-area" id="decryptedResult">
+                Your decrypted note will appear here...
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" onclick="copyToClipboard('decryptedResult')">📋 Copy</button>
+                <button class="btn btn-secondary" onclick="downloadText('decryptedResult', 'decrypted-note.txt')">💾
+                    Download</button>
+            </div>
+        </div>
+
+        <!-- Steganography Tab -->
+        <div id="steganography" class="tab-content">
+            <div class="info-box">
+                <h3>🖼️ Hide Message in Image</h3>
+                <p>Hide your encrypted note inside a PNG or JPG image using steganography.</p>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <div class="form-group">
+                        <label for="stegoTitle">Note Title:</label>
+                        <input type="text" id="stegoTitle" placeholder="Enter note title">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stegoContent">Note Content:</label>
+                        <textarea id="stegoContent" placeholder="Enter your secret message..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stegoPassword">Password:</label>
+                        <input type="password" id="stegoPassword" placeholder="Enter encryption password">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="file-upload">
+                        <input type="file" id="imageUpload" accept="image/png,image/jpeg,image/jpg"
+                            onchange="handleImageUpload(this)">
+                        <label for="imageUpload" class="file-upload-label">
+                            <strong>📁 Choose PNG or JPG Image</strong><br>
+                            <small>Or drag and drop an image here</small>
+                        </label>
+                    </div>
+
+                    <img id="imagePreview" class="image-preview" style="display: none;" alt="Image Preview">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="hideBtn" onclick="hideMessageInImage()" disabled>🔒 Hide
+                    Message</button>
+                <button class="btn btn-secondary" onclick="clearStegoForm()">🗑️ Clear</button>
+                <button class="btn btn-success" id="downloadCanvasBtn" onclick="downloadCanvas()" disabled>💾 Download
+                    Image</button>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="originalCanvas" style="display: none;"></canvas>
+                <canvas id="stegoCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Extract Tab -->
+        <div id="extract" class="tab-content">
+            <div class="info-box">
+                <h3>🔍 Extract Message from Image</h3>
+                <p>Extract hidden messages from PNG or JPG images created with steganography.</p>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <div class="file-upload">
+                        <input type="file" id="extractImageUpload" accept="image/png,image/jpeg,image/jpg"
+                            onchange="handleExtractImageUpload(this)">
+                        <label for="extractImageUpload" class="file-upload-label">
+                            <strong>📁 Choose PNG or JPG Image</strong><br>
+                            <small>Select image with hidden message</small>
+                        </label>
+                    </div>
+
+                    <img id="extractImagePreview" class="image-preview" style="display: none;" alt="Extract Preview">
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <label for="extractPassword">Password:</label>
+                        <input type="password" id="extractPassword" placeholder="Enter decryption password">
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="extractBtn" onclick="extractMessageFromImage()" disabled>🔍
+                            Extract Message</button>
+                        <button class="btn btn-secondary" onclick="clearExtractForm()">🗑️ Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-area" id="extractedResult">
+                Your extracted message will appear here...
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" onclick="copyToClipboard('extractedResult')">📋 Copy</button>
+                <button class="btn btn-secondary" onclick="downloadText('extractedResult', 'extracted-message.txt')">💾
+                    Download</button>
+            </div>
+
+            <canvas id="extractCanvas" style="display: none;"></canvas>
+        </div>
+    </div>
+    <script src="script.js"></script
+</body>
+
+</html>
